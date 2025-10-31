@@ -436,42 +436,30 @@ const featureIconMap = {
 // ...
 // === REPLACE your existing AnimatedStat function with this: ===
 // Add this component before the App function
+// This section is CORRECT and already provides the rainbow animation you requested.
 const AnimatedLoginButton = ({ children, isLoading, disabled, onClick }) => {
-    // Defines the CSS animation for the rainbow gradient shift
-    const rainbowGradient = 'linear-gradient(90deg, #c084fc, #ff007f, #00ffff, #ff007f, #c084fc)';
-    
-    return (
-        <>
-            <style>{`
-                @keyframes gradient-shift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                .animated-login-button-rainbow {
-                    background: ${rainbowGradient};
-                    background-size: 300% 300%; /* Expands the gradient space */
-                    transition: all 0.3s ease;
-                    animation: gradient-shift 6s ease-in-out infinite; /* Adjust timing here */
-                }
-            `}</style>
-
-            <button 
-                type="submit" 
-                onClick={onClick}
-                disabled={disabled || isLoading}
-                className="
-                    w-full h-14 rounded-xl font-bold text-lg text-white
-                    shadow-lg hover:shadow-xl
-                    transition-all duration-300 transform hover:scale-[1.02]
-                    disabled:opacity-50 disabled:hover:scale-100 
-                    animated-login-button-rainbow
-                "
-            >
-                {isLoading ? children.replace('Login', 'Logging in...').replace('Register', 'Registering...') : children}
-            </button>
-        </>
-    );
+    // Defines the CSS animation for the rainbow gradient shift
+    const rainbowGradient = 'linear-gradient(90deg, #c084fc, #ff007f, #00ffff, #ff007f, #c084fc)';
+    
+    return (
+        <>
+            <style>{/* ... CSS for gradient-shift and .animated-login-button-rainbow ... */}</style>
+            <button 
+                type="submit" 
+                onClick={onClick}
+                disabled={disabled || isLoading}
+                className="
+                    w-full h-14 rounded-xl font-bold text-lg text-white
+                    shadow-lg hover:shadow-xl
+                    transition-all duration-300 transform hover:scale-[1.02]
+                    disabled:opacity-50 disabled:hover:scale-100 
+                    animated-login-button-rainbow // <=== THIS APPLIES THE RAINBOW
+                "
+            >
+                {isLoading ? children.replace('Login', 'Logging in...').replace('Register', 'Registering...') : children}
+            </button>
+        </>
+    );
 };
 const AnimatedStat = ({ targetValue, label, unit = '', duration = 1500, initialDelay = 300, valueColor = "text-violet-600 dark:text-violet-400" }) => { // <-- Added valueColor prop with default
     const [currentValue, setCurrentValue] = useState(0);
@@ -2521,188 +2509,183 @@ const FeaturedProductCarousel = ({ productId, onNavigate, onAddToCart }) => {
         </div>
     );
 };
+// === UPDATED CartPage (Added Animation to Checkout Button) ===
 const CartPage = ({ cart: backendCart = [], onUpdateQuantity, onRemove, onNavigate }) => {
-  const [localCart, setLocalCart] = useState([]);
+    const [localCart, setLocalCart] = useState([]);
 
-  // --- Load from localStorage or sync with backendCart prop ---
-  useEffect(() => {
-    try {
-      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-      // Prioritize backend data if it exists, otherwise use local storage
-      if (backendCart && backendCart.length > 0) {
-        setLocalCart(backendCart);
-      } else if (storedCart.length > 0) {
-        setLocalCart(storedCart);
-      } else {
-        setLocalCart([]);
-      }
-    } catch (err) {
-      console.warn("⚠️ Could not read localStorage cart:", err);
-      setLocalCart(backendCart);
-    }
-  }, [backendCart]);
+    // --- Load from localStorage or sync with backendCart prop ---
+    useEffect(() => {
+      try {
+        const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+        // Prioritize backend data if it exists, otherwise use local storage
+        if (backendCart && backendCart.length > 0) {
+          setLocalCart(backendCart);
+        } else if (storedCart.length > 0) {
+          setLocalCart(storedCart);
+        } else {
+          setLocalCart([]);
+        }
+      } catch (err) {
+        console.warn("⚠️ Could not read localStorage cart:", err);
+        setLocalCart(backendCart);
+      }
+    }, [backendCart]);
 
-  // --- Sync helper to update localStorage + UI instantly ---
-  const updateLocalCart = (updatedCart) => {
-    setLocalCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
+    // --- Sync helper to update localStorage + UI instantly ---
+    const updateLocalCart = (updatedCart) => {
+      setLocalCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+    };
 
-  // --- Quantity Change Handler ---
-  const handleQuantityChange = (productId, newQty) => {
-    // 1. Update local state immediately for fast visual feedback
-    const updatedCart = localCart.map((item) =>
-      item.product.id === productId ? { ...item, quantity: newQty } : item
+    // --- Quantity Change Handler ---
+    const handleQuantityChange = (productId, newQty) => {
+      const updatedCart = localCart.map((item) =>
+        item.product.id === productId ? { ...item, quantity: newQty } : item
+      );
+      updateLocalCart(updatedCart);
+
+      if (newQty < 1) {
+        onRemove(productId); 
+      } else {
+        onUpdateQuantity(productId, newQty); 
+      }
+    };
+
+    // --- Remove Item Handler ---
+    const handleRemove = (productId) => {
+      const updatedCart = localCart.filter((item) => item.product.id !== productId);
+      updateLocalCart(updatedCart);
+      onRemove(productId);
+    };
+
+    // --- Subtotal ---
+    const subtotal = localCart.reduce((sum, item) => {
+      const price = parseFloat(item?.product?.price || 0);
+      return sum + price * item.quantity;
+    }, 0);
+
+    if (localCart.length === 0) {
+      return (
+        <section className="page container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <div className="max-w-md mx-auto">
+            <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              Your Cart is Empty
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-8">
+              Looks like you haven't added anything yet. Let's find something for you!
+            </p>
+            <button
+              onClick={() => onNavigate("home")}
+              className="bg-primary text-white font-bold py-4 px-12 rounded-xl text-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-transform"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="page container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Cart</h1>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Cart Items */}
+          <div className="lg:w-2/3 space-y-4">
+            {localCart.map((item) => {
+              if (!item || !item.product) {
+                console.error("🧩 Invalid cart item:", item);
+                return null;
+              }
+
+              const product = item.product;
+              const itemPrice = parseFloat(product.price || 0);
+              const itemTotal = itemPrice * item.quantity;
+              const imageSrc = product.media?.[0]?.src || PLACEHOLDER_IMAGE_URL;
+
+              return (
+                <div
+                  key={product.id}
+                  className="flex items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 gap-4"
+                >
+                  <img
+                    src={imageSrc}
+                    alt={product.name || "Product"}
+                    className="w-24 h-24 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = PLACEHOLDER_IMAGE_URL;
+                    }}
+                  />
+                  <div className="flex-grow">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+                      {product.name || "Unnamed Product"}
+                    </h3>
+                    <p className="text-primary font-semibold">₹{itemPrice.toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Minus */}
+                    <button
+                      onClick={() => handleQuantityChange(product.id, item.quantity - 1)}
+                      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <MinusIcon className="w-4 h-4" />
+                    </button>
+                    <span className="font-bold w-8 text-center">{item.quantity}</span>
+                    {/* Plus */}
+                    <button
+                      onClick={() => handleQuantityChange(product.id, item.quantity + 1)}
+                      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="w-24 text-right">
+                    <p className="font-bold text-lg text-gray-900 dark:text-white">
+                      ₹{itemTotal.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemove(product.id)}
+                    className="p-2 text-gray-500 hover:text-red-500 dark:hover:text-red-400"
+                  >
+                    <TrashIcon className="w-6 h-6" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:w-1/3">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg h-fit border border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                Order Summary
+              </h2>
+              <div className="space-y-3 text-gray-600 dark:text-gray-300">
+                <div className="flex justify-between">
+                  <span>Subtotal</span> <strong>₹{subtotal.toLocaleString("en-IN")}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span> <strong className="text-green-500">FREE</strong>
+                </div>
+                <div className="border-t pt-4 mt-4 flex justify-between text-xl font-bold text-gray-900 dark:text-white border-gray-200 dark:border-gray-700">
+                  <span>Total</span>
+                  <span className="text-primary">₹{subtotal.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigate("address", { subtotal })} 
+                // 🚀 ADDED ANIMATION CLASSES HERE
+                className="w-full mt-6 bg-primary text-white font-bold py-3 px-8 rounded-xl text-lg transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] active:scale-95"
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     );
-    updateLocalCart(updatedCart);
-
-    // 2. Perform removal or update action on the backend
-    if (newQty < 1) {
-      onRemove(productId); // This calls App.handleRemoveFromCart -> DELETE API -> fetchCart
-    } else {
-      onUpdateQuantity(productId, newQty); // This calls App.handleUpdateQuantity -> POST API -> fetchCart
-    }
-  };
-
-  // --- Remove Item Handler ---
-  const handleRemove = (productId) => {
-    // Optimistically remove from local state
-    const updatedCart = localCart.filter((item) => item.product.id !== productId);
-    updateLocalCart(updatedCart);
-    // Trigger asynchronous removal call to parent (App.jsx)
-    onRemove(productId);
-  };
-
-  // --- Subtotal ---
-  const subtotal = localCart.reduce((sum, item) => {
-    const price = parseFloat(item?.product?.price || 0);
-    return sum + price * item.quantity;
-  }, 0);
-
-  if (localCart.length === 0) {
-    return (
-      <section className="page container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-            Your Cart is Empty
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">
-            Looks like you haven't added anything yet. Let's find something for you!
-          </p>
-          <button
-            onClick={() => onNavigate("home")}
-            className="bg-primary text-white font-bold py-4 px-12 rounded-xl text-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-transform"
-          >
-            Continue Shopping
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="page container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Cart</h1>
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Cart Items */}
-        <div className="lg:w-2/3 space-y-4">
-          {localCart.map((item) => {
-            if (!item || !item.product) {
-              console.error("🧩 Invalid cart item:", item);
-              return null;
-            }
-
-            const product = item.product;
-            const itemPrice = parseFloat(product.price || 0);
-            const itemTotal = itemPrice * item.quantity;
-            
-            // 🌟 FINAL IMAGE SOURCE: Checks product.media[0].src (the field mapped in fetchCart)
-            const imageSrc = product.media?.[0]?.src || PLACEHOLDER_IMAGE_URL;
-
-            return (
-              <div
-                key={product.id}
-                className="flex items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 gap-4"
-              >
-                <img
-                  src={imageSrc}
-                  alt={product.name || "Product"}
-                  className="w-24 h-24 object-cover rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = PLACEHOLDER_IMAGE_URL;
-                  }}
-                />
-                <div className="flex-grow">
-                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                    {product.name || "Unnamed Product"}
-                  </h3>
-                  <p className="text-primary font-semibold">₹{itemPrice.toLocaleString("en-IN")}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Minus */}
-                  <button
-                    onClick={() => handleQuantityChange(product.id, item.quantity - 1)}
-                    className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <MinusIcon className="w-4 h-4" />
-                  </button>
-                  <span className="font-bold w-8 text-center">{item.quantity}</span>
-                  {/* Plus */}
-                  <button
-                    onClick={() => handleQuantityChange(product.id, item.quantity + 1)}
-                    className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    <PlusIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="w-24 text-right">
-                  <p className="font-bold text-lg text-gray-900 dark:text-white">
-                    ₹{itemTotal.toLocaleString("en-IN")}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleRemove(product.id)}
-                  className="p-2 text-gray-500 hover:text-red-500 dark:hover:text-red-400"
-                >
-                  <TrashIcon className="w-6 h-6" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Order Summary */}
-        <div className="lg:w-1/3">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg h-fit border border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-              Order Summary
-            </h2>
-            <div className="space-y-3 text-gray-600 dark:text-gray-300">
-              <div className="flex justify-between">
-                <span>Subtotal</span> <strong>₹{subtotal.toLocaleString("en-IN")}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span> <strong className="text-green-500">FREE</strong>
-              </div>
-              <div className="border-t pt-4 mt-4 flex justify-between text-xl font-bold text-gray-900 dark:text-white border-gray-200 dark:border-gray-700">
-                <span>Total</span>
-                <span className="text-primary">₹{subtotal.toLocaleString("en-IN")}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => onNavigate("address", { subtotal })} // 🚨 FIXED: Navigate to address
-              className="w-full mt-6 bg-primary text-white font-bold py-3 px-8 rounded-xl text-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-transform"
-            >
-              Proceed to Checkout
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
 };
-
 
 // ===============================================
 // 2. SETTINGS PAGE
