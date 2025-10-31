@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build: . 
+    container_name: reactorx-backend
+    ports:
+      - "8080:8080" 
+    environment:
+      # These override application.properties. These are now correct.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://reactorx-db:5432/clean_reactorx_db
+      SPRING_DATASOURCE_USERNAME: fresh_user
+      SPRING_DATASOURCE_PASSWORD: FreshPass123
+      # This is the correct, 512-bit key with the $$ escape for compose
+      JWT_SECRET: sP6v9y$$B&E)H@McQfTjWnZr4u7x!A%D*G-JaNdRgUkXp2s5v8y/B?E(H+MbQeThV
+    depends_on:
+      db: 
+        condition: service_healthy
+    networks:
+      - reactorx-network
+
+  db:
+    image: postgres:15 
+    container_name: reactorx-db
+    environment:
+      # These variables MUST match the backend environment variables
+      POSTGRES_DB: clean_reactorx_db
+      POSTGRES_USER: fresh_user
+      POSTGRES_PASSWORD: FreshPass123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+    ports:
+      - "5432:5432" 
+    networks:
+      - reactorx-network
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U fresh_user -d clean_reactorx_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  reactorx-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
