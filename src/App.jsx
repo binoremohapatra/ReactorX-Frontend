@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 // === API Base URL ===
 // Fixed: Using Vite's environment variable with a fallback to your local backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = "https://reactorx-backend-o1tl.onrender.com/api";
 const PLACEHOLDER_IMAGE_URL = "https://placehold.co/100x100/333333/FFFFFF?text=NO+IMG";
 
 
@@ -2053,6 +2053,13 @@ const AuthPage = ({ onLogin }) => {
             ? { email, password }
             : { email, password, name };
 
+        // DEBUG: Log what we're sending
+        console.log("=== DEBUG LOGIN ===");
+        console.log("URL:", url);
+        console.log("Payload:", payload);
+        console.log("Email:", email);
+        console.log("Password:", password ? "***" : "EMPTY");
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -2062,6 +2069,10 @@ const AuthPage = ({ onLogin }) => {
                 body: JSON.stringify(payload),
                 credentials: 'include'
             });
+
+            // DEBUG: Log response
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
 
             const contentType = response.headers.get("content-type");
             const isJson = contentType && contentType.includes("application/json");
@@ -2081,6 +2092,9 @@ const AuthPage = ({ onLogin }) => {
             }
 
             const data = isJson ? await response.json() : {};
+
+            // DEBUG: Log success data
+            console.log("SUCCESS DATA:", data);
 
             if (isLogin) {
                 onLogin(data); // Expects { token, user }
@@ -4681,8 +4695,13 @@ export default function App() {
 
 
     const handleLogin = (authData) => {
+        console.log("=== HANDLE LOGIN DEBUG ===");
+        console.log("Received authData:", authData);
+        console.log("Has token:", !!authData.token);
+        console.log("Has user:", !!authData.user);
+        
         if (authData.token && authData.user) {
-            console.log("🔑 Login successful:", authData.user.email);
+            console.log(" Login successful:", authData.user.email);
             setAuthToken(authData.token);
             setCurrentUser(authData.user);
             localStorage.setItem('authToken', authData.token);
