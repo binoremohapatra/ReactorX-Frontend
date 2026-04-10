@@ -3622,99 +3622,43 @@ const HomeCategoryCard = ({ category, onNavigate }) => (
 // === REPLACE your existing ProductCard component with this fixed version ===
 // === REPLACE your existing ProductCard component with this fixed version ===
 const ProductCard = ({ product, onNavigate }) => {
-    const [isHovered, setIsHovered] = useState(false);
-    const videoRef = useRef(null);
-
     const imageSrc = product.primaryMedia?.src || PLACEHOLDER_IMAGE_URL;
-    const videoSrc = product.primaryMedia?.type === 'video' ? product.primaryMedia.src : null;
     const glowClass = getProductCardGlowClass(product.name);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        if (isHovered) {
-            video.currentTime = 0;
-            video.play().catch(() => {});
-        } else {
-            video.pause();
-        }
-    }, [isHovered]);
 
     return (
         <div
             className={`rounded-xl overflow-hidden group relative cursor-pointer bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1 ${glowClass}`}
             onClick={() => onNavigate('product-details', { id: product.id })}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
         >
             <div className="relative rounded-t-xl bg-violet-100 dark:bg-violet-900/50 aspect-square w-full overflow-hidden">
-
                 <img
                     src={imageSrc}
                     alt={product.name}
-                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                        isHovered && videoSrc
-                            ? 'opacity-0 scale-100'
-                            : 'opacity-100 scale-100 group-hover:scale-105 group-hover:brightness-110'
-                    }`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
                     onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE_URL; }}
                 />
-
-                {videoSrc && (
-                    <video
-                        ref={videoRef}
-                        src={videoSrc}
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
-                            isHovered ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                )}
-
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
-            <div className="p-4 bg-white dark:bg-gray-900 transition-colors duration-300">
-                <h3 className={`font-semibold truncate mt-1 transition-colors duration-200 ${isHovered ? 'text-violet-400' : 'text-gray-800 dark:text-gray-100'}`}>
+            <div className="p-4 bg-white dark:bg-gray-900">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 truncate mt-1">
                     {product.name}
                 </h3>
                 <div className="flex items-baseline gap-2 mt-2">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">₹{product.price}</p>
-                    <p className="text-sm text-gray-400 line-through">MRP ₹{product.mrp}</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">({product.price}</p>
+                    <p className="text-sm text-gray-400 line-through">MRP {product.mrp}</p>
                 </div>
             </div>
         </div>
     );
 };
 const BigDealsCard = ({ product, onNavigate }) => {
-    const [isHovered, setIsHovered] = useState(false);
-    const videoRef = useRef(null);
-
     const imageSrc = product.primaryMedia?.src || PLACEHOLDER_IMAGE_URL;
-    const videoSrc = product.primaryMedia?.type === 'video' ? product.primaryMedia.src : null;
     const isSoldOut = product.isSoldOut || false;
     const glowClass = getProductCardGlowClass(product.name);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        if (isHovered) {
-            video.currentTime = 0;
-            video.play().catch(() => {});
-        } else {
-            video.pause();
-        }
-    }, [isHovered]);
 
     return (
         <div
             onClick={() => onNavigate('product-details', { id: product.id })}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             className={`flex-shrink-0 w-56 md:w-72 rounded-xl overflow-hidden group relative cursor-pointer bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1 ${isSoldOut ? 'opacity-60' : ''} ${glowClass}`}
         >
             {isSoldOut && (
@@ -3724,43 +3668,21 @@ const BigDealsCard = ({ product, onNavigate }) => {
             )}
 
             <div className="relative rounded-t-xl bg-violet-100 dark:bg-violet-900/50 aspect-square w-full overflow-hidden">
-
                 <img
                     src={imageSrc}
                     alt={product.name}
-                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                        isHovered && videoSrc
-                            ? 'opacity-0 scale-100'
-                            : 'opacity-100 scale-100 group-hover:scale-105 group-hover:brightness-110'
-                    }`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
                     onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE_URL; }}
                 />
-
-                {videoSrc && (
-                    <video
-                        ref={videoRef}
-                        src={videoSrc}
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
-                            isHovered ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                )}
-
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
-            <div className="p-4 bg-white dark:bg-gray-900 transition-colors duration-300">
-                <h3 className={`font-semibold truncate mt-1 transition-colors duration-200 ${isHovered ? 'text-violet-400' : 'text-gray-800 dark:text-gray-100'}`}>
+            <div className="p-4 bg-white dark:bg-gray-900">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 truncate mt-1">
                     {product.name}
                 </h3>
                 <div className="flex items-baseline gap-2 mt-2">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">₹{product.price}</p>
-                    <p className="text-sm text-gray-400 line-through">MRP ₹{product.mrp}</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">({product.price}</p>
+                    <p className="text-sm text-gray-400 line-through">MRP {product.mrp}</p>
                 </div>
             </div>
         </div>
